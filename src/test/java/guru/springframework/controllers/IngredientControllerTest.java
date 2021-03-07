@@ -13,6 +13,7 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import reactor.core.publisher.Flux;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -76,7 +77,7 @@ public class IngredientControllerTest {
 		recipeCommand.setId("1");
 
 		Mockito.when(recipeService.findCommandById(Mockito.anyString())).thenReturn(recipeCommand);
-		Mockito.when(unitOfMeasureService.listAll()).thenReturn(new HashSet<>());
+		Mockito.when(unitOfMeasureService.listAll()).thenReturn(Flux.just(new UnitOfMeasureCommand()));
 
 		mockMvc.perform(get("/recipe/1/ingredient/new"))
 				.andExpect(status().isOk())
@@ -92,9 +93,7 @@ public class IngredientControllerTest {
 		// given
 		Mockito.when(ingredientService.findByRecipeIdAndId(Mockito.anyString(), Mockito.anyString()))
 				.thenReturn(new IngredientCommand());
-		Set<UnitOfMeasureCommand> unitOfMeasures = new HashSet<>();
-		unitOfMeasures.add(new UnitOfMeasureCommand());
-		Mockito.when(unitOfMeasureService.listAll()).thenReturn(unitOfMeasures);
+		Mockito.when(unitOfMeasureService.listAll()).thenReturn(Flux.just(new UnitOfMeasureCommand()));
 
 		mockMvc.perform(get("/recipe/1/ingredient/2/update"))
 				.andExpect(status().isOk())

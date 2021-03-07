@@ -3,21 +3,21 @@ package guru.springframework.services;
 import guru.springframework.commands.UnitOfMeasureCommand;
 import guru.springframework.converters.UnitOfMeasureToUnitOfMeasureCommand;
 import guru.springframework.domain.UnitOfMeasure;
-import guru.springframework.repositories.UnitOfMeasureRepository;
+import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import reactor.core.publisher.Flux;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 public class UnitOfMeasureServiceImplTest {
 
 	@Mock
-	UnitOfMeasureRepository unitOfMeasureRepository;
+	UnitOfMeasureReactiveRepository unitOfMeasureRepository;
 	@Mock
 	UnitOfMeasureToUnitOfMeasureCommand unitOfMeasureToUnitOfMeasureCommand;
 
@@ -32,14 +32,12 @@ public class UnitOfMeasureServiceImplTest {
 
 	@Test
 	public void listAll() {
-		Set<UnitOfMeasure> unitOfMeasures = new HashSet<>();
-		unitOfMeasures.add(new UnitOfMeasure());
-		Mockito.when(unitOfMeasureRepository.findAll()).thenReturn(unitOfMeasures);
+		Mockito.when(unitOfMeasureRepository.findAll()).thenReturn(Flux.just(new UnitOfMeasure()));
 		UnitOfMeasureCommand unitOfMeasureCommand = new UnitOfMeasureCommand();
 		Mockito.when(unitOfMeasureToUnitOfMeasureCommand.convert(Mockito.any(UnitOfMeasure.class)))
 				.thenReturn(unitOfMeasureCommand);
 
-		Set<UnitOfMeasureCommand> result = sut.listAll();
+		List<UnitOfMeasureCommand> result = sut.listAll().collectList().block();
 
 		Assert.assertNotNull(result);
 		Assert.assertFalse(result.isEmpty());
