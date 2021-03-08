@@ -5,14 +5,18 @@ import guru.springframework.converters.RecipeToRecipeCommand;
 import guru.springframework.domain.Recipe;
 import guru.springframework.exceptions.NotFoundException;
 import guru.springframework.repositories.RecipeRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -21,7 +25,7 @@ public class RecipeServiceImplTest {
 	RecipeServiceImpl recipeService;
 
 	@Mock
-	RecipeRepository recipeRepository;
+	RecipeReactiveRepository recipeRepository;
 	@Mock
 	RecipeCommandToRecipe recipeCommandToRecipe;
 	@Mock
@@ -35,13 +39,9 @@ public class RecipeServiceImplTest {
 
 	@Test
 	public void getRecipes() {
-		Recipe recipe = new Recipe();
-		Set<Recipe> recipeSet = new HashSet<>();
-		recipeSet.add(recipe);
+		Mockito.when(recipeRepository.findAll()).thenReturn(Flux.just(new Recipe()));
 
-		Mockito.when(recipeRepository.findAll()).thenReturn(recipeSet);
-
-		Set<Recipe> recipes = recipeService.getRecipes();
+		List<Recipe> recipes = recipeService.getRecipes().collectList().block();
 
 		Assert.assertEquals(1, recipes.size());
 		Mockito.verify(recipeRepository, Mockito.times(1)).findAll();
@@ -51,21 +51,21 @@ public class RecipeServiceImplTest {
 	public void getRecipeById() {
 		Recipe recipe = new Recipe();
 		recipe.setId("1");
-		Optional<Recipe> recipeOptional = Optional.of(recipe);
-		Mockito.when(recipeRepository.findById(Mockito.anyString())).thenReturn(recipeOptional);
+		Mockito.when(recipeRepository.findById(Mockito.anyString())).thenReturn(Mono.just(recipe));
 
-		Recipe result = recipeService.findById("1");
+		Recipe result = recipeService.findById("1").block();
 
 		Assert.assertNotNull(result);
 		Assert.assertEquals(recipe.getId(), result.getId());
 	}
 
-	@Test(expected = NotFoundException.class)
+	@Test
 	public void getRecipeByIdNotFound() {
-		Optional<Recipe> recipeOptional = Optional.empty();
-		Mockito.when(recipeRepository.findById(Mockito.anyString())).thenReturn(recipeOptional);
+		Mockito.when(recipeRepository.findById(Mockito.anyString())).thenReturn(Mono.empty());
 
-		recipeService.findById("1");
+		Recipe recipe = recipeService.findById("1").block();
+
+		Assert.assertNull(recipe);
 	}
 
 	@Test

@@ -14,6 +14,7 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -46,7 +47,7 @@ public class IngredientControllerTest {
 	@Test
 	public void list() throws Exception {
 		RecipeCommand recipeCommand = new RecipeCommand();
-		Mockito.when(recipeService.findCommandById(Mockito.anyString())).thenReturn(recipeCommand);
+		Mockito.when(recipeService.findCommandById(Mockito.anyString())).thenReturn(Mono.just(recipeCommand));
 
 		mockMvc.perform(get("/recipe/1/ingredients"))
 				.andExpect(status().isOk())
@@ -76,7 +77,7 @@ public class IngredientControllerTest {
 		RecipeCommand recipeCommand = new RecipeCommand();
 		recipeCommand.setId("1");
 
-		Mockito.when(recipeService.findCommandById(Mockito.anyString())).thenReturn(recipeCommand);
+		Mockito.when(recipeService.findCommandById(Mockito.anyString())).thenReturn(Mono.just(recipeCommand));
 		Mockito.when(unitOfMeasureService.listAll()).thenReturn(Flux.just(new UnitOfMeasureCommand()));
 
 		mockMvc.perform(get("/recipe/1/ingredient/new"))

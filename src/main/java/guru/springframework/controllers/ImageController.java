@@ -40,7 +40,7 @@ public class ImageController {
 
 	@GetMapping("/{id}/recipeimage")
 	public void renderImageFromDb(@PathVariable String id, HttpServletResponse response) throws IOException {
-		RecipeCommand recipeCommand = recipeService.findCommandById(id);
+		RecipeCommand recipeCommand = recipeService.findCommandById(id).block();
 		if (recipeCommand.getImage() != null) {
 			byte[] image = new byte[recipeCommand.getImage().length];
 			for (int i = 0; i < recipeCommand.getImage().length; i++) {

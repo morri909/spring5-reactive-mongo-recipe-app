@@ -9,8 +9,9 @@ import org.mockito.*;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.ui.Model;
+import reactor.core.publisher.Flux;
 
-import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -34,16 +35,13 @@ public class IndexControllerTest {
 
 	@Test
 	public void getIndexPage() {
-		Set<Recipe> recipes = new HashSet<>();
 		Recipe recipe1 = new Recipe();
 		recipe1.setId("1");
-		recipes.add(recipe1);
 		Recipe recipe2 = new Recipe();
 		recipe2.setId("2");
-		recipes.add(recipe2);
-		Mockito.when(recipeService.getRecipes()).thenReturn(recipes);
+		Mockito.when(recipeService.getRecipes()).thenReturn(Flux.just(recipe1, recipe2));
 
-		ArgumentCaptor<Set<Recipe>> argumentCaptor = ArgumentCaptor.forClass(Set.class);
+		ArgumentCaptor<List<Recipe>> argumentCaptor = ArgumentCaptor.forClass(List.class);
 
 		String view = indexController.getIndexPage(model);
 
@@ -52,13 +50,19 @@ public class IndexControllerTest {
 		Mockito.verify(model, Mockito.times(1))
 				.addAttribute(ArgumentMatchers.eq("recipes"), argumentCaptor.capture());
 
-		Set<Recipe> results = argumentCaptor.getValue();
+		List<Recipe> results = argumentCaptor.getValue();
 		Assert.assertEquals(2, results.size());
 	}
 
 	@Test
 	public void testMockMvc() throws Exception {
 		MockMvc mockMvc = MockMvcBuilders.standaloneSetup(indexController).build();
+
+		Recipe recipe1 = new Recipe();
+		recipe1.setId("1");
+		Recipe recipe2 = new Recipe();
+		recipe2.setId("2");
+		Mockito.when(recipeService.getRecipes()).thenReturn(Flux.just(recipe1, recipe2));
 
 		mockMvc.perform(get("/"))
 				.andExpect(status().isOk())

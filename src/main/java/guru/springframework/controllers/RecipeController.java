@@ -49,7 +49,7 @@ public class RecipeController {
 			bindingResult.getAllErrors().forEach(error -> log.debug(error.toString()));
 			return RECIPE_RECIPEFORM;
 		}
-		RecipeCommand savedRecipeCommand = recipeService.saveRecipeCommand(recipeCommand);
+		RecipeCommand savedRecipeCommand = recipeService.saveRecipeCommand(recipeCommand).block();
 		return "redirect:/recipe/" + savedRecipeCommand.getId() + "/show";
 	}
 
