@@ -59,6 +59,8 @@ public class ImageControllerTest {
 		MockMultipartFile file = new MockMultipartFile("imagefile", "testing.txt", "text/plain",
 				"This is a test".getBytes());
 
+		Mockito.when(imageService.saveImageFile(Mockito.anyString(), Mockito.any())).thenReturn(Mono.empty());
+
 		mockMvc.perform(multipart("/recipe/1/image").file(file))
 				.andExpect(status().isFound())
 				.andExpect(header().string("Location", "/recipe/1/show"));

@@ -1,10 +1,8 @@
 package guru.springframework.services;
 
-import guru.springframework.domain.Recipe;
 import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Mono;
 
@@ -21,7 +19,6 @@ public class ImageServiceImpl implements ImageService {
 	}
 
 	@Override
-	@Transactional
 	public Mono<Void> saveImageFile(String id, MultipartFile multipartFile) throws IOException {
 		log.debug("Saving image file: " + multipartFile.getOriginalFilename());
 		return recipeReactiveRepository.findById(id)
