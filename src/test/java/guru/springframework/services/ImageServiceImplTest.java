@@ -1,7 +1,7 @@
 package guru.springframework.services;
 
 import guru.springframework.domain.Recipe;
-import guru.springframework.repositories.RecipeRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,14 +11,14 @@ import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.util.Optional;
 
 public class ImageServiceImplTest {
 
 	@Mock
-	RecipeRepository recipeRepository;
+	RecipeReactiveRepository recipeReactiveRepository;
 
 	ImageServiceImpl sut;
 
@@ -26,7 +26,7 @@ public class ImageServiceImplTest {
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
 
-		sut = new ImageServiceImpl(recipeRepository);
+		sut = new ImageServiceImpl(recipeReactiveRepository);
 	}
 
 	@Test
@@ -37,17 +37,16 @@ public class ImageServiceImplTest {
 
 		Recipe recipe = new Recipe();
 		recipe.setId(id);
-		Optional<Recipe> recipeOptional = Optional.of(recipe);
-
-		Mockito.when(recipeRepository.findById(Mockito.anyString())).thenReturn(recipeOptional);
+		Mockito.when(recipeReactiveRepository.findById(Mockito.anyString())).thenReturn(Mono.just(recipe));
+		Mockito.when(recipeReactiveRepository.save(Mockito.any(Recipe.class))).thenReturn(Mono.just(recipe));
 
 		ArgumentCaptor<Recipe> argumentCaptor = ArgumentCaptor.forClass(Recipe.class);
 
 		//when
-		sut.saveImageFile(id, multipartFile);
+		sut.saveImageFile(id, multipartFile).block();
 
 		//then
-		Mockito.verify(recipeRepository).save(argumentCaptor.capture());
+		Mockito.verify(recipeReactiveRepository).save(argumentCaptor.capture());
 		Recipe savedRecipe = argumentCaptor.getValue();
 		Assert.assertEquals(multipartFile.getBytes().length, savedRecipe.getImage().length);
 	}

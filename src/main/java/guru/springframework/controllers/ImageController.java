@@ -34,7 +34,7 @@ public class ImageController {
 
 	@PostMapping("/{id}/image")
 	public String imageUpload(@PathVariable String id, @RequestParam("imagefile") MultipartFile file) throws IOException {
-		imageService.saveImageFile(id, file);
+		imageService.saveImageFile(id, file).block();
 		return "redirect:/recipe/" + id + "/show";
 	}
 
