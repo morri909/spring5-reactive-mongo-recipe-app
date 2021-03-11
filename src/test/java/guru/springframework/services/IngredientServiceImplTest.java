@@ -26,8 +26,6 @@ public class IngredientServiceImplTest {
 	IngredientCommandToIngredient ingredientCommandToIngredient;
 	IngredientToIngredientCommand ingredientToIngredientCommand;
 	@Mock
-	RecipeRepository recipeRepository;
-	@Mock
 	UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository;
 	@Mock
 	RecipeReactiveRepository recipeReactiveRepository;
@@ -51,7 +49,6 @@ public class IngredientServiceImplTest {
 				ingredientToIngredientCommand,
 				ingredientCommandToIngredient,
 				recipeReactiveRepository,
-				recipeRepository,
 				unitOfMeasureReactiveRepository
 			);
 	}
@@ -73,7 +70,7 @@ public class IngredientServiceImplTest {
 		Ingredient ingredient2 = new Ingredient();
 		ingredient2.setId("2");
 		recipe.getIngredients().add(ingredient2);
-		Mockito.when(recipeRepository.findById(Mockito.anyString())).thenReturn(Optional.of(recipe));
+		Mockito.when(recipeReactiveRepository.findById(Mockito.anyString())).thenReturn(Mono.just(recipe));
 		Mockito.when(unitOfMeasureReactiveRepository.findById(Mockito.anyString())).thenReturn(Mono.just(new UnitOfMeasure()));
 		Mockito.when(recipeReactiveRepository.save(Mockito.any(Recipe.class))).thenReturn(Mono.just(recipe));
 
@@ -97,11 +94,11 @@ public class IngredientServiceImplTest {
 		Ingredient ingredient3 = new Ingredient();
 		ingredient3.setId("3");
 		recipe.getIngredients().add(ingredient3);
-		Mockito.when(recipeRepository.findById(Mockito.anyString())).thenReturn(Optional.of(recipe));
+		Mockito.when(recipeReactiveRepository.findById(Mockito.anyString())).thenReturn(Mono.just(recipe));
 
 		sut.deleteById("1", "2");
 
-		Mockito.verify(recipeRepository).save(recipeArgumentCaptor.capture());
+		Mockito.verify(recipeReactiveRepository).save(recipeArgumentCaptor.capture());
 		Recipe savedReciped = recipeArgumentCaptor.getValue();
 		Assert.assertNotNull(savedReciped);
 		Assert.assertEquals(2, savedReciped.getIngredients().size());
