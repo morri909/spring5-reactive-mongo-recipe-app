@@ -62,7 +62,7 @@ public class IngredientControllerTest {
 		IngredientCommand ingredientCommand = new IngredientCommand();
 
 		Mockito.when(ingredientService.findByRecipeIdAndId(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(ingredientCommand);
+				.thenReturn(Mono.just(ingredientCommand));
 
 		mockMvc.perform(get("/recipe/1/ingredient/2/show"))
 				.andExpect(status().isOk())
@@ -93,7 +93,7 @@ public class IngredientControllerTest {
 	public void update() throws Exception {
 		// given
 		Mockito.when(ingredientService.findByRecipeIdAndId(Mockito.anyString(), Mockito.anyString()))
-				.thenReturn(new IngredientCommand());
+				.thenReturn(Mono.just(new IngredientCommand()));
 		Mockito.when(unitOfMeasureService.listAll()).thenReturn(Flux.just(new UnitOfMeasureCommand()));
 
 		mockMvc.perform(get("/recipe/1/ingredient/2/update"))
@@ -112,7 +112,7 @@ public class IngredientControllerTest {
 		savedIngredientCommand.setId("1");
 		savedIngredientCommand.setRecipeId("2");
 		Mockito.when(ingredientService.saveIngredientCommand(Mockito.any(IngredientCommand.class)))
-				.thenReturn(savedIngredientCommand);
+				.thenReturn(Mono.just(savedIngredientCommand));
 
 		// then
 		String redirectUrl = "/recipe/" + savedIngredientCommand.getRecipeId() +

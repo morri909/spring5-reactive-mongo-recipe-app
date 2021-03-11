@@ -4,66 +4,56 @@ import guru.springframework.commands.IngredientCommand;
 import guru.springframework.commands.UnitOfMeasureCommand;
 import guru.springframework.converters.IngredientCommandToIngredient;
 import guru.springframework.converters.IngredientToIngredientCommand;
+import guru.springframework.converters.UnitOfMeasureCommandToUnitOfMeasure;
+import guru.springframework.converters.UnitOfMeasureToUnitOfMeasureCommand;
 import guru.springframework.domain.Ingredient;
 import guru.springframework.domain.Recipe;
 import guru.springframework.domain.UnitOfMeasure;
 import guru.springframework.repositories.RecipeRepository;
 import guru.springframework.repositories.UnitOfMeasureRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
+import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.*;
+import reactor.core.publisher.Mono;
 
 import java.util.Optional;
 
 public class IngredientServiceImplTest {
 
-	@Mock
 	IngredientCommandToIngredient ingredientCommandToIngredient;
-	@Mock
 	IngredientToIngredientCommand ingredientToIngredientCommand;
 	@Mock
 	RecipeRepository recipeRepository;
 	@Mock
-	UnitOfMeasureRepository unitOfMeasureRepository;
+	UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository;
+	@Mock
+	RecipeReactiveRepository recipeReactiveRepository;
 
 	@Captor
 	ArgumentCaptor<Recipe> recipeArgumentCaptor;
 
 	IngredientService sut;
 
+	//init converters
+	public IngredientServiceImplTest() {
+		this.ingredientToIngredientCommand = new IngredientToIngredientCommand(new UnitOfMeasureToUnitOfMeasureCommand());
+		this.ingredientCommandToIngredient = new IngredientCommandToIngredient(new UnitOfMeasureCommandToUnitOfMeasure());
+	}
+
 	@Before
 	public void setUp() throws Exception {
 		MockitoAnnotations.initMocks(this);
 
 		sut = new IngredientServiceImpl(
-				ingredientCommandToIngredient,
 				ingredientToIngredientCommand,
+				ingredientCommandToIngredient,
+				recipeReactiveRepository,
 				recipeRepository,
-				unitOfMeasureRepository
+				unitOfMeasureReactiveRepository
 			);
-	}
-
-	@Test
-	public void findByRecipeIdAndId() {
-		Recipe recipe = new Recipe();
-		Ingredient ingredient1 = new Ingredient();
-		ingredient1.setId("1");
-		recipe.getIngredients().add(ingredient1);;
-		Ingredient ingredient2 = new Ingredient();
-		ingredient2.setId("2");
-		recipe.getIngredients().add(ingredient2);
-		Mockito.when(recipeRepository.findById(Mockito.anyString()))
-				.thenReturn(Optional.of(recipe));
-
-		IngredientCommand ingredientCommand = new IngredientCommand();
-		Mockito.when(ingredientToIngredientCommand.convert(Mockito.any(Ingredient.class)))
-				.thenReturn(ingredientCommand);
-
-		IngredientCommand result = sut.findByRecipeIdAndId("1", "2");
-
-		Assert.assertNotNull(result);
-		Assert.assertEquals(ingredientCommand, result);
 	}
 
 	@Test
@@ -84,17 +74,15 @@ public class IngredientServiceImplTest {
 		ingredient2.setId("2");
 		recipe.getIngredients().add(ingredient2);
 		Mockito.when(recipeRepository.findById(Mockito.anyString())).thenReturn(Optional.of(recipe));
-		Mockito.when(unitOfMeasureRepository.findById(Mockito.anyString())).thenReturn(Optional.of(new UnitOfMeasure()));
-		Mockito.when(recipeRepository.save(Mockito.any(Recipe.class))).thenReturn(recipe);
-		Mockito.when(ingredientToIngredientCommand.convert(Mockito.any(Ingredient.class))).thenReturn(new IngredientCommand());
+		Mockito.when(unitOfMeasureReactiveRepository.findById(Mockito.anyString())).thenReturn(Mono.just(new UnitOfMeasure()));
+		Mockito.when(recipeReactiveRepository.save(Mockito.any(Recipe.class))).thenReturn(Mono.just(recipe));
 
 		// when
-		IngredientCommand result = sut.saveIngredientCommand(ingredientCommand);
+		IngredientCommand result = sut.saveIngredientCommand(ingredientCommand).block();
 
 		// then
 		Assert.assertNotNull(result);
-		Mockito.verify(recipeRepository).save(Mockito.any(Recipe.class));
-		Mockito.verify(ingredientToIngredientCommand).convert(Mockito.any(Ingredient.class));
+		Mockito.verify(recipeReactiveRepository).save(Mockito.any(Recipe.class));
 	}
 
 	@Test
